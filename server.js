@@ -54,4 +54,8 @@ app.post('/convert', upload.single('file'), async (req, res, next) => {
   }
 });
 
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
 app.listen(PORT, () => console.log(`⚡  converter running on :${PORT}`));
