@@ -30,14 +30,18 @@ app.post('/convert', upload.single('file'), async (req, res, next) => {
     } = req.query;
 
     const command = ffmpeg(src)
-      .videoCodec('libx264')
-      .audioCodec('aac')           // in case you add audio later
-      .outputOptions([
-        '-pix_fmt yuv420p',        // iOS requires this
-        `-crf ${crf}`,
-        `-preset ${preset}`,
-        '-movflags +faststart',    // mp4 starts playing before fully downloaded
-      ])
+  .videoCodec('libx264')
+  .audioCodec('aac')            // keeps it playable everywhere
+  .outputOptions([
+    '-pix_fmt yuv420p',         // iOS/Safari requirement
+    '-vf fps=30',               // <-- forces constant 30 fps
+    '-vsync 2',                 // drop/dup frames to keep CFR
+    '-crf 18',                  // visually lossless HD
+    `-preset ${preset}`,        // keep your CLI override
+    '-profile:v high',
+    '-level 4.0',
+    '-movflags +faststart'      // streamable MP4
+  ])
       .on('end', async () => {
         await fs.unlink(src);      // tidy
         res.download(out, 'logo360.mp4', async () => {
